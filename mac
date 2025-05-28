@@ -1,12 +1,14 @@
 #!/bin/sh
 
-# Welcome to the thoughtbot laptop script!
-# Be prepared to turn your laptop (or desktop, no haters here)
-# into an awesome development machine.
+# Modern macOS Development Environment Setup Script
+# Based on thoughtbot's laptop script with customizations for modern development
+# Supports both Intel and Apple Silicon Macs
 
+# shellcheck disable=SC3043
+
+# Utility Functions
 fancy_echo() {
   local fmt="$1"; shift
-
   # shellcheck disable=SC2059
   printf "\\n$fmt\\n" "$@"
 }
@@ -30,34 +32,45 @@ append_to_zshrc() {
   fi
 }
 
+gem_install_or_update() {
+  if gem list "$1" --installed > /dev/null; then
+    gem update "$@"
+  else
+    gem install "$@"
+  fi
+}
+
+# Error handling and setup
 # shellcheck disable=SC2154
 trap 'ret=$?; test $ret -ne 0 && printf "failed\n\n" >&2; exit $ret' EXIT
-
 set -e
 
+# Initial system setup
+fancy_echo "Setting up initial directories and shell configuration..."
+
+# Create user bin directory
 if [ ! -d "$HOME/.bin/" ]; then
   mkdir "$HOME/.bin"
 fi
 
+# Create zshrc if it doesn't exist
 if [ ! -f "$HOME/.zshrc" ]; then
   touch "$HOME/.zshrc"
 fi
 
+# Add user bin to PATH
 # shellcheck disable=SC2016
 append_to_zshrc 'export PATH="$HOME/.bin:$PATH"'
 
-HOMEBREW_PREFIX="/usr/local"
-
-if [ -d "$HOMEBREW_PREFIX" ]; then
-  if ! [ -r "$HOMEBREW_PREFIX" ]; then
-    sudo chown -R "$LOGNAME:admin" /usr/local
-  fi
+# Determine Homebrew prefix based on architecture
+arch="$(uname -m)"
+if [ "$arch" = "arm64" ]; then
+  HOMEBREW_PREFIX="/opt/homebrew"
 else
-  sudo mkdir "$HOMEBREW_PREFIX"
-  sudo chflags norestricted "$HOMEBREW_PREFIX"
-  sudo chown -R "$LOGNAME:admin" "$HOMEBREW_PREFIX"
+  HOMEBREW_PREFIX="/usr/local"
 fi
 
+# Shell configuration
 update_shell() {
   local shell_path;
   shell_path="$(command -v zsh)"
@@ -72,7 +85,7 @@ update_shell() {
 
 case "$SHELL" in
   */zsh)
-    if [ "$(command -v zsh)" != '/usr/local/bin/zsh' ] ; then
+    if [ "$(command -v zsh)" != "$HOMEBREW_PREFIX/bin/zsh" ] ; then
       update_shell
     fi
     ;;
@@ -81,42 +94,44 @@ case "$SHELL" in
     ;;
 esac
 
-gem_install_or_update() {
-  if gem list "$1" --installed > /dev/null; then
-    gem update "$@"
+# Install Rosetta 2 for Apple Silicon Macs (needed for some x86 apps)
+if [ "$(uname -m)" = "arm64" ]; then
+  if ! pkgutil --pkg-info=com.apple.pkg.RosettaUpdateAuto > /dev/null 2>&1; then
+    fancy_echo "Installing Rosetta 2 for x86 compatibility..."
+    softwareupdate --install-rosetta --agree-to-license
   else
-    gem install "$@"
+    fancy_echo "Rosetta 2 is already installed"
   fi
-}
-
-if ! command -v brew >/dev/null; then
-  fancy_echo "Installing Homebrew ..."
-    /bin/bash -c \
-      "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-
-    append_to_zshrc '# recommended by brew doctor'
-
-    # shellcheck disable=SC2016
-    append_to_zshrc 'export PATH="/usr/local/bin:$PATH"' 1
-
-    export PATH="/usr/local/bin:$PATH"
 fi
 
+# Homebrew installation and setup
+if ! command -v brew >/dev/null; then
+  fancy_echo "Installing Homebrew..."
+  /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+  append_to_zshrc "eval \"\$($HOMEBREW_PREFIX/bin/brew shellenv)\""
+  export PATH="$HOMEBREW_PREFIX/bin:$PATH"
+fi
+
+# Remove old Homebrew-Cask if present
 if brew list | grep -Fq brew-cask; then
-  fancy_echo "Uninstalling old Homebrew-Cask ..."
+  fancy_echo "Uninstalling old Homebrew-Cask..."
   brew uninstall --force brew-cask
 fi
 
-fancy_echo "Updating Homebrew formulae ..."
+# Package installation via Homebrew
+fancy_echo "Installing development tools and applications..."
 brew update --force # https://github.com/Homebrew/brew/issues/1151
-brew bundle --file=- <<EOF
-tap "thoughtbot/formulae"
-tap "homebrew/services"
-tap "universal-ctags/universal-ctags"
-tap "heroku/brew"
 
-# Unix
-brew "universal-ctags", args: ["HEAD"]
+brew bundle --file=- <<EOF
+# Homebrew Taps
+tap "thoughtbot/formulae"
+tap "mobile-dev-inc/tap"
+tap "supabase/tap"
+
+# Core Unix Tools
+brew "universal-ctags"
 brew "git"
 brew "openssl"
 brew "rcm"
@@ -124,80 +139,115 @@ brew "reattach-to-user-namespace"
 brew "the_silver_searcher"
 brew "tmux"
 brew "vim"
-brew "watchman"
-brew "zsh"
-
-# Heroku
-brew "heroku/brew/heroku"
-brew "parity"
-
-# GitHub
-brew "gh"
-
-# Image manipulation
-brew "imagemagick"
-
-# Programming language prerequisites and package managers
-brew "libyaml" # should come after openssl
 brew "coreutils"
-brew "yarn"
-cask "gpg-suite"
+brew "libyaml"
 
-# Databases
-brew "postgres", restart_service: :changed
-brew "redis", restart_service: :changed
+# Shell and Terminal
+brew "zsh"
+brew "zsh-autosuggestions"
+brew "starship"
+
+# Runtimes
+brew "oven-sh/bun/bun"
+brew "deno"
+brew "watchman"
+
+# Mobile
+brew "maestro"
+brew "lyft/formulae/set-simulator-location"
+
+# System Utilities
+brew "dark-mode"
+brew "rclone"
+brew "gh"
+cask "betterdisplay"
+
+# Development Applications
+cask "orbstack"
+cask "eloston-chromium"
+
+# CLI Tools
+brew "biome"
+brew "supabase"
+brew "vercel-cli"
 EOF
 
-fancy_echo "Update heroku binary ..."
-brew unlink heroku
-brew link --force heroku
-
-fancy_echo "Configuring asdf version manager ..."
+# ASDF version manager setup
+fancy_echo "Configuring asdf version manager..."
 if [ ! -d "$HOME/.asdf" ]; then
-  git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.5.0
-  append_to_zshrc "source $HOME/.asdf/asdf.sh" 1
+  brew install asdf
+  append_to_zshrc "source $(brew --prefix asdf)/libexec/asdf.sh" 1
 fi
 
-alias install_asdf_plugin=add_or_update_asdf_plugin
+# Function to add or update asdf plugins
 add_or_update_asdf_plugin() {
   local name="$1"
   local url="$2"
 
-  if ! asdf plugin-list | grep -Fq "$name"; then
-    asdf plugin-add "$name" "$url"
+  if ! asdf plugin list | grep -Fq "$name"; then
+    asdf plugin add "$name" "$url"
   else
-    asdf plugin-update "$name"
+    asdf plugin update "$name"
   fi
 }
 
-# shellcheck disable=SC1090
-source "$HOME/.asdf/asdf.sh"
+# Load asdf for current session
+# shellcheck disable=SC1091
+. "$(brew --prefix asdf)/libexec/asdf.sh"
+
+# Add language plugins
 add_or_update_asdf_plugin "ruby" "https://github.com/asdf-vm/asdf-ruby.git"
 add_or_update_asdf_plugin "nodejs" "https://github.com/asdf-vm/asdf-nodejs.git"
 
+# ASDF language installation
 install_asdf_language() {
   local language="$1"
   local version
-  version="$(asdf list-all "$language" | grep -v "[a-z]" | tail -1)"
+  
+  if [ "$language" = "ruby" ]; then
+    # For Ruby, get the latest standard Ruby version (exclude alternative implementations)
+    version="$(asdf list all "$language" | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | tail -1)"
+  else
+    # For other languages, get the last version
+    version="$(asdf list all "$language" | grep -v '^$' | tail -1)"
+  fi
 
   if ! asdf list "$language" | grep -Fq "$version"; then
     asdf install "$language" "$version"
-    asdf global "$language" "$version"
+    asdf set "$language" "$version"
   fi
 }
 
-fancy_echo "Installing latest Ruby ..."
+# Install Ruby and configure bundler
+fancy_echo "Installing latest Ruby..."
 install_asdf_language "ruby"
 gem update --system
 number_of_cores=$(sysctl -n hw.ncpu)
 bundle config --global jobs $((number_of_cores - 1))
 
-fancy_echo "Installing latest Node ..."
-bash "$HOME/.asdf/plugins/nodejs/bin/import-release-team-keyring"
+# Install Node.js
+fancy_echo "Installing latest Node.js..."
 install_asdf_language "nodejs"
 
+# Install global npm packages
+fancy_echo "Installing global npm packages..."
+npm install -g eas-cli
+
+# Shell enhancements
+fancy_echo "Configuring shell enhancements..."
+append_to_zshrc "source $HOMEBREW_PREFIX/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# Ruby gems for mobile development
+fancy_echo "Installing Ruby gems for mobile development..."
+gem_install_or_update "cocoapods"
+gem_install_or_update "fastlane"
+
+# Custom local configuration
 if [ -f "$HOME/.laptop.local" ]; then
-  fancy_echo "Running your customizations from ~/.laptop.local ..."
-  # shellcheck disable=SC1090
+  fancy_echo "Running your customizations from ~/.laptop.local..."
+  # shellcheck disable=SC1091
   . "$HOME/.laptop.local"
 fi
+
+fancy_echo "🎉 Development environment setup complete!"
+fancy_echo "Please restart your terminal or run 'source ~/.zshrc' to apply all changes."

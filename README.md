@@ -1,236 +1,139 @@
-Laptop
-======
+# macOS Development Environment Setup
 
-Laptop is a script to set up a macOS laptop for web and mobile development.
+A modern macOS development environment setup script based on [thoughtbot's laptop](https://github.com/thoughtbot/laptop) with customizations for contemporary development workflows.
 
-It can be run multiple times on the same machine safely.
-It installs, upgrades, or skips packages
-based on what is already installed on the machine.
+## Features
 
-Requirements
-------------
+- **Cross-platform compatibility**: Supports both Intel and Apple Silicon Macs
+- **Modern toolchain**: Includes Bun, Deno, and other contemporary development tools
+- **Mobile development**: Pre-configured for React Native and iOS development
+- **Version management**: Uses asdf for managing multiple language versions
+- **Shell enhancements**: Includes zsh with autosuggestions and Starship prompt
 
-We support:
+## What it installs
 
-* macOS Mavericks (10.9)
-* macOS Yosemite (10.10)
-* macOS El Capitan (10.11)
-* macOS Sierra (10.12)
-* macOS High Sierra (10.13)
-* macOS Mojave (10.14)
-* macOS Catalina (10.15)
+### Core Development Tools
+- Git, Vim, tmux, and essential Unix utilities
+- Homebrew package manager
+- asdf version manager with Ruby and Node.js
+- Zsh with autosuggestions and Starship prompt
 
-Older versions may work but aren't regularly tested.
-Bug reports for older versions are welcome.
+### Languages & Runtimes
+- Latest Ruby with Bundler configuration
+- Latest Node.js with global npm packages
+- Bun and Deno JavaScript runtimes
 
-Install
--------
+### Mobile Development
+- Maestro for mobile app testing
+- CocoaPods and Fastlane gems
+- EAS CLI for Expo development
+- iOS Simulator location utilities
 
-Download the script:
+### Applications
+- OrbStack (Docker alternative)
+- Eloston Chromium
+- BetterDisplay
 
-```sh
-curl --remote-name https://raw.githubusercontent.com/thoughtbot/laptop/master/mac
-```
+### CLI Tools
+- GitHub CLI
+- Supabase CLI
+- Vercel CLI
+- Biome (code formatter/linter)
+- rclone (cloud storage sync)
 
-Review the script (avoid running scripts you haven't read!):
+## Installation
 
-```sh
-less mac
-```
+### Prerequisites
+- macOS (Intel or Apple Silicon)
+- Administrator access (for some installations)
 
-Execute the downloaded script:
+### Quick Start
 
-```sh
-sh mac 2>&1 | tee ~/laptop.log
-```
+1. **Download and run the script:**
+   ```bash
+   curl --remote-name https://raw.githubusercontent.com/[your-username]/[your-repo]/main/mac
+   sh mac 2>&1 | tee ~/laptop.log
+   ```
 
-Optionally, review the log:
+2. **Or clone the repository:**
+   ```bash
+   git clone https://github.com/[your-username]/[your-repo].git
+   cd [your-repo]
+   sh mac 2>&1 | tee ~/laptop.log
+   ```
 
-```sh
-less ~/laptop.log
-```
+3. **For local development (symlink method):**
+   ```bash
+   # Clone to your development directory
+   git clone https://github.com/[your-username]/[your-repo].git ~/Development/laptop
+   
+   # Create a symlink in your home directory
+   ln -sf ~/Development/laptop/mac ~/mac
+   
+   # Now you can run from anywhere
+   sh ~/mac 2>&1 | tee ~/laptop.log
+   ```
 
-Optionally, [install thoughtbot/dotfiles][dotfiles].
+### What to expect
 
-[dotfiles]: https://github.com/thoughtbot/dotfiles#install
+The script will:
+1. Install Rosetta 2 (on Apple Silicon Macs)
+2. Install and configure Homebrew
+3. Install development tools and applications
+4. Set up asdf version manager
+5. Install latest Ruby and Node.js versions
+6. Configure shell enhancements
+7. Install mobile development tools
 
-Debugging
----------
+**Note**: The script may prompt for your password during installation of certain components. All output will be logged to `~/laptop.log` for troubleshooting.
 
-Your last Laptop run will be saved to `~/laptop.log`.
-Read through it to see if you can debug the issue yourself.
-If not, copy the lines where the script failed into a
-[new GitHub Issue](https://github.com/thoughtbot/laptop/issues/new) for us.
-Or, attach the whole log file as an attachment.
+## Customization
 
-What it sets up
----------------
+### Local customizations
+Create a `~/.laptop.local` file to add your own customizations that will run after the main script:
 
-macOS tools:
-
-* [Homebrew] for managing operating system libraries.
-
-[Homebrew]: http://brew.sh/
-
-Unix tools:
-
-* [Universal Ctags] for indexing files for vim tab completion
-* [Git] for version control
-* [OpenSSL] for Transport Layer Security (TLS)
-* [RCM] for managing company and personal dotfiles
-* [The Silver Searcher] for finding things in files
-* [Tmux] for saving project state and switching between projects
-* [Watchman] for watching for filesystem events
-* [Zsh] as your shell
-
-[Universal Ctags]: https://ctags.io/
-[Git]: https://git-scm.com/
-[OpenSSL]: https://www.openssl.org/
-[RCM]: https://github.com/thoughtbot/rcm
-[The Silver Searcher]: https://github.com/ggreer/the_silver_searcher
-[Tmux]: http://tmux.github.io/
-[Watchman]: https://facebook.github.io/watchman/
-[Zsh]: http://www.zsh.org/
-
-Heroku tools:
-
-* [Heroku CLI] and [Parity] for interacting with the Heroku API
-
-[Heroku CLI]: https://devcenter.heroku.com/articles/heroku-cli
-[Parity]: https://github.com/thoughtbot/parity
-
-GitHub tools:
-
-* [GitHub CLI] for interacting with the GitHub API
-
-[GitHub CLI]: https://cli.github.com/
-
-Image tools:
-
-* [ImageMagick] for cropping and resizing images
-
-Programming languages, package managers, and configuration:
-
-* [asdf-vm] for managing programming language versions
-* [Bundler] for managing Ruby libraries
-* [Node.js] and [npm], for running apps and installing JavaScript packages
-* [Ruby] stable for writing general-purpose code
-* [Yarn] for managing JavaScript packages
-
-[Bundler]: http://bundler.io/
-[ImageMagick]: http://www.imagemagick.org/
-[Node.js]: http://nodejs.org/
-[npm]: https://www.npmjs.org/
-[asdf-vm]: https://github.com/asdf-vm/asdf
-[Ruby]: https://www.ruby-lang.org/en/
-[Yarn]: https://yarnpkg.com/en/
-
-Databases:
-
-* [Postgres] for storing relational data
-* [Redis] for storing key-value data
-
-[Postgres]: http://www.postgresql.org/
-[Redis]: http://redis.io/
-
-It should take less than 15 minutes to install (depends on your machine).
-
-Customize in `~/.laptop.local`
-------------------------------
-
-Your `~/.laptop.local` is run at the end of the Laptop script.
-Put your customizations there.
-For example:
-
-```sh
+```bash
 #!/bin/sh
 
-brew bundle --file=- <<EOF
-brew "Caskroom/cask/dockertoolbox"
-brew "go"
-brew "ngrok"
-brew "watch"
-EOF
-
-default_docker_machine() {
-  docker-machine ls | grep -Fq "default"
-}
-
-if ! default_docker_machine; then
-  docker-machine create --driver virtualbox default
-fi
-
-default_docker_machine_running() {
-  default_docker_machine | grep -Fq "Running"
-}
-
-if ! default_docker_machine_running; then
-  docker-machine start default
-fi
-
-fancy_echo "Cleaning up old Homebrew formulae ..."
-brew cleanup
-brew cask cleanup
-
-if [ -r "$HOME/.rcrc" ]; then
-  fancy_echo "Updating dotfiles ..."
-  rcup
-fi
+# Example local customizations
+brew install --cask your-favorite-app
+gem install your-favorite-gem
+npm install -g your-favorite-package
 ```
 
-Write your customizations such that they can be run safely more than once.
-See the `mac` script for examples.
+### Modifying the script
+Feel free to fork this repository and modify the `mac` script to suit your needs. The script is well-commented and organized into logical sections.
 
-Laptop functions such as `fancy_echo` and
-`gem_install_or_update`
-can be used in your `~/.laptop.local`.
+## Post-installation
 
-See the [wiki](https://github.com/thoughtbot/laptop/wiki)
-for more customization examples.
+After the script completes:
 
-Contributing
-------------
+1. **Restart your terminal** or run `source ~/.zshrc` to apply shell changes
+2. **Check the log file** at `~/laptop.log` for any issues or warnings
+3. **Verify installations** by checking versions:
+   ```bash
+   ruby --version
+   node --version
+   brew --version
+   ```
 
-Edit the `mac` file.
-Document in the `README.md` file.
-Follow shell style guidelines by using [ShellCheck] and [Syntastic].
+## Troubleshooting
 
-```sh
-brew install shellcheck
-```
+### Common issues
+- **Permission errors**: Ensure you have administrator access
+- **Network issues**: Check your internet connection for downloads
+- **Homebrew conflicts**: The script handles most common Homebrew issues automatically
+- **Installation failures**: Check `~/laptop.log` for detailed error messages
 
-[ShellCheck]: http://www.shellcheck.net/about.html
-[Syntastic]: https://github.com/scrooloose/syntastic
+### Getting help
+- Check the [original thoughtbot/laptop issues](https://github.com/thoughtbot/laptop/issues) for common problems
+- Review the `~/laptop.log` file for specific error messages
+- Ensure your macOS is up to date
 
-Thank you, [contributors]!
+## Credits
 
-[contributors]: https://github.com/thoughtbot/laptop/graphs/contributors
+This script is based on and inspired by [thoughtbot's laptop](https://github.com/thoughtbot/laptop), with modifications for modern development workflows and additional tools for mobile development.
 
-By participating in this project,
-you agree to abide by the thoughtbot [code of conduct].
+## License
 
-[code of conduct]: https://thoughtbot.com/open-source-code-of-conduct
-
-License
--------
-
-Laptop is © 2011-2020 thoughtbot, inc.
-It is free software,
-and may be redistributed under the terms specified in the [LICENSE] file.
-
-[LICENSE]: LICENSE
-
-About thoughtbot
-----------------
-
-![thoughtbot](https://thoughtbot.com/brand_assets/93:44.svg)
-
-Laptop is maintained and funded by thoughtbot, inc.
-The names and logos for thoughtbot are trademarks of thoughtbot, inc.
-
-We are passionate about open source software.
-See [our other projects][community].
-We are [available for hire][hire].
-
-[community]: https://thoughtbot.com/community?utm_source=github
-[hire]: https://thoughtbot.com?utm_source=github
+This project maintains the same license as the original thoughtbot/laptop repository.
