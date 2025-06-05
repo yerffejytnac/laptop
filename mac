@@ -161,6 +161,7 @@ brew "dark-mode"
 brew "rclone"
 brew "gh"
 cask "betterdisplay"
+cask "iina"
 
 # Development Applications
 cask "orbstack"
