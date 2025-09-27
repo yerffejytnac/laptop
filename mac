@@ -124,6 +124,7 @@ fi
 fancy_echo "Installing development tools and applications..."
 brew update --force # https://github.com/Homebrew/brew/issues/1151
 
+# Install Homebrew bundle
 brew bundle --file=- <<EOF
 # Homebrew Taps
 tap "thoughtbot/formulae"
@@ -133,6 +134,7 @@ tap "supabase/tap"
 # Core Unix Tools
 brew "universal-ctags"
 brew "git"
+brew "git-lfs"
 brew "openssl"
 brew "rcm"
 brew "reattach-to-user-namespace"
@@ -153,15 +155,21 @@ brew "deno"
 brew "watchman"
 
 # Mobile
+# Disabling for now to determine if it's better to continue using gem variant or not...
+brew "cocoapods"
+brew "fastlane"
 brew "maestro"
+brew "expo-orbit"
 brew "lyft/formulae/set-simulator-location"
 
 # System Utilities
+# brew "loop"
 brew "dark-mode"
 brew "rclone"
 brew "gh"
 cask "betterdisplay"
 cask "iina"
+cask "ghostty"
 
 # Development Applications
 cask "orbstack"
@@ -231,8 +239,8 @@ fancy_echo "Installing latest Node.js..."
 install_asdf_language "nodejs"
 
 # Install global npm packages
-fancy_echo "Installing global npm packages..."
-npm install -g eas-cli
+# fancy_echo "Installing global npm packages..."
+# npm install -g eas-cli
 
 # Shell enhancements
 fancy_echo "Configuring shell enhancements..."
@@ -252,3 +260,6 @@ fi
 
 fancy_echo "🎉 Development environment setup complete!"
 fancy_echo "Please restart your terminal or run 'source ~/.zshrc' to apply all changes."
+
+# Set up Homebrew autoupdate to run every week and cleanup old versions
+# brew autoupdate start 604800 --cleanup --upgrade
